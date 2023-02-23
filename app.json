@@ -1,7 +1,7 @@
 {
   "expo": {
     "name": "myexpo",
-    "slug": "myexpo",
+    "slug": "mobilechat",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
@@ -28,6 +28,12 @@
     },
     "web": {
       "favicon": "./assets/favicon.png"
-    }
+    },
+    "extra": {
+      "eas": {
+        "projectId": "6b40af0f-c551-432e-88a7-692e828a24dc"
+      }
+    },
+    "owner": "marynapolich"
   }
 }
