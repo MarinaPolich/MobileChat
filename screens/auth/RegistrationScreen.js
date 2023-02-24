@@ -19,7 +19,7 @@ const initialState = {
   password: "",
 };
 
-export default function RegistrationScreen() {
+export default function RegistrationScreen({ navigation }) {
   const [isShowKeyboard, setIsShowKeyboard] = useState(false);
   const [state, setState] = useState(initialState);
 
@@ -59,7 +59,7 @@ export default function RegistrationScreen() {
             <View
               style={{
                 ...styles.form,
-                marginBottom: isShowKeyboard ? -102 : 0,
+                marginBottom: isShowKeyboard ? -142 : 0,
               }}
             >
               <View style={styles.photoBox}>
@@ -94,7 +94,7 @@ export default function RegistrationScreen() {
                 }
               />
               <TextInput
-                style={{ ...styles.input, marginBottom: 32, width: dimensions }}
+                style={{ ...styles.input, marginBottom: 43, width: dimensions }}
                 textAlign={"left"}
                 placeholder={"Пароль"}
                 placeholderTextColor={"#BDBDBD"}
@@ -111,9 +111,15 @@ export default function RegistrationScreen() {
                 activeOpacity={0.8}
                 onPress={handleSubmit}
               >
-                <Text style={styles.btnText}>Войти</Text>
+                <Text style={styles.btnText}>Зарегистрироваться</Text>
               </TouchableOpacity>
-              <Text style={styles.textLink}>Уже есть аккаунт? Войти</Text>
+
+              <TouchableOpacity
+                onPress={() => navigation.navigate("Login")}
+                activeOpacity={0.8}
+              >
+                <Text style={styles.textLink}>Уже есть аккаунт? Войти</Text>
+              </TouchableOpacity>
             </View>
           </KeyboardAvoidingView>
         </ImageBackground>
@@ -141,7 +147,7 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     backgroundColor: "#F6F6F6",
     color: "#212121",
-    fontFamily: "Roboto-Regular",
+    // fontFamily: "Roboto-Regular",
     fontWeight: "400",
     fontSize: 16,
     lineHeight: 19,
@@ -149,7 +155,6 @@ const styles = StyleSheet.create({
   form: {
     alignItems: "center",
     marginBottom: 0,
-    // paddingHorizontal: 16,
     paddingBottom: 45,
     borderTopStartRadius: 25,
     borderTopEndRadius: 25,
@@ -159,7 +164,7 @@ const styles = StyleSheet.create({
     marginBottom: 33,
     textAlign: "center",
     color: "#212121",
-    fontFamily: "Roboto-Medium",
+    // fontFamily: "Roboto-Medium",
     fontWeight: "500",
     fontSize: 30,
     lineHeight: 35,
@@ -175,7 +180,7 @@ const styles = StyleSheet.create({
   },
   btnText: {
     color: "#FFFFFF",
-    fontFamily: "Roboto-Regular",
+    // fontFamily: "Roboto-Regular",
     fontWeight: "400",
     fontSize: 16,
     lineHeight: 19,
@@ -207,7 +212,7 @@ const styles = StyleSheet.create({
   textLink: {
     textAlign: "center",
     color: "#1B4371",
-    fontFamily: "Roboto-Regular",
+    // fontFamily: "Roboto-Regular",
     fontWeight: "400",
     fontSize: 16,
     lineHeight: 19,
