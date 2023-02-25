@@ -7,7 +7,7 @@ import { useRoute } from "./router";
 
 export default function App() {
   const [appIsReady, setAppIsReady] = useState(false);
-  const routing = useRoute(null);
+  const routing = useRoute({});
 
   useEffect(() => {
     async function prepare() {
