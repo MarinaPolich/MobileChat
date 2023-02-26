@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { Camera } from "expo-camera";
 import {
   StyleSheet,
   Text,
@@ -11,7 +12,10 @@ import {
   Keyboard,
   TouchableWithoutFeedback,
   Dimensions,
+  Image,
 } from "react-native";
+
+import SvgAdd from "../../assets/icon/add.svg";
 
 const initialState = {
   name: "",
@@ -27,13 +31,26 @@ export default function RegistrationScreen({ navigation }) {
     Dimensions.get("window").width - 16 * 2
   );
 
+  const [camera, setCamera] = useState(null);
+  const [photo, setPhoto] = useState(null);
+  const [permission, requestPermission] = Camera.useCameraPermissions();
+  Camera.requestCameraPermissionsAsync();
+
+  const takePhoto = async () => {
+    try {
+      const photo = await camera.takePictureAsync();
+      setPhoto(photo.uri);
+    } catch (error) {
+      console.log("error :>> ", error);
+    }
+  };
+
   const keyboardHide = () => {
     setIsShowKeyboard(false);
     Keyboard.dismiss();
   };
 
   const handleSubmit = () => {
-    console.log("state", state);
     setState(initialState);
   };
 
@@ -62,12 +79,22 @@ export default function RegistrationScreen({ navigation }) {
                 marginBottom: isShowKeyboard ? -142 : 0,
               }}
             >
-              <View style={styles.photoBox}>
-                <TouchableOpacity style={styles.photoBtn} activeOpacity={0.8}>
-                  <ImageBackground
-                    source={require("../../assets/image/add.png")}
-                    style={styles.imageBtn}
-                  />
+              <View style={styles.photoContainer}>
+                <View style={styles.photoWrapper}>
+                  <Camera style={styles.cameraBox} ref={setCamera}>
+                    {photo && (
+                      <View style={styles.photoBox}>
+                        <Image source={{ uri: photo }} style={styles.photo} />
+                      </View>
+                    )}
+                  </Camera>
+                </View>
+                <TouchableOpacity
+                  onPress={takePhoto}
+                  style={styles.photoBtn}
+                  activeOpacity={0.8}
+                >
+                  <SvgAdd width={32} height={32} style={styles.imageBtn} />
                 </TouchableOpacity>
               </View>
               <Text style={styles.title}>Регистрация</Text>
@@ -147,8 +174,7 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     backgroundColor: "#F6F6F6",
     color: "#212121",
-    // fontFamily: "Roboto-Regular",
-    fontWeight: "400",
+    fontFamily: "Roboto-Regular",
     fontSize: 16,
     lineHeight: 19,
   },
@@ -164,8 +190,7 @@ const styles = StyleSheet.create({
     marginBottom: 33,
     textAlign: "center",
     color: "#212121",
-    // fontFamily: "Roboto-Medium",
-    fontWeight: "500",
+    fontFamily: "Roboto-Medium",
     fontSize: 30,
     lineHeight: 35,
     letterSpacing: 0.01,
@@ -180,40 +205,56 @@ const styles = StyleSheet.create({
   },
   btnText: {
     color: "#FFFFFF",
-    // fontFamily: "Roboto-Regular",
-    fontWeight: "400",
+    fontFamily: "Roboto-Regular",
     fontSize: 16,
     lineHeight: 19,
     textAlign: "center",
   },
-  photoBox: {
+  photoContainer: {
     position: "relative",
-    width: 120,
-    height: 120,
     marginTop: -60,
     marginBottom: 32,
+  },
+  photoWrapper: {
+    width: 120,
+    height: 120,
     backgroundColor: "#F6F6F6",
     borderRadius: 16,
+    overflow: "hidden",
+  },
+  cameraBox: {
+    width: "100%",
+    height: "100%",
+  },
+  photoBox: {
+    position: "absolute",
+    top: 0,
+    left: 0,
+    width: "100%",
+    height: "100%",
+  },
+  photo: {
+    width: "100%",
+    height: "100%",
   },
   photoBtn: {
     position: "absolute",
-    bottom: 14,
-    right: -7,
-    width: 25,
-    height: 25,
-  },
-  imageBtn: {
-    width: 25,
-    height: 25,
-    resizeMode: "cover",
+    bottom: 10,
+    right: -20,
+    width: 40,
+    height: 40,
+    color: "#FF6C00",
     justifyContent: "center",
     alignItems: "center",
+  },
+  imageBtn: {
+    transform: [{ rotate: "45deg" }],
+    color: "#FF6C00",
   },
   textLink: {
     textAlign: "center",
     color: "#1B4371",
-    // fontFamily: "Roboto-Regular",
-    fontWeight: "400",
+    fontFamily: "Roboto-Regular",
     fontSize: 16,
     lineHeight: 19,
   },
