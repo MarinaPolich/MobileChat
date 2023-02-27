@@ -1,13 +1,13 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect } from "react";
+import Main from "./components/Main";
 import * as SplashScreen from "expo-splash-screen";
 import * as Font from "expo-font";
 
-import { NavigationContainer } from "@react-navigation/native";
-import { useRoute } from "./router";
+import { Provider } from "react-redux";
+import { store } from "./redux/store";
 
 export default function App() {
   const [appIsReady, setAppIsReady] = useState(false);
-  const routing = useRoute({});
 
   useEffect(() => {
     async function prepare() {
@@ -33,5 +33,9 @@ export default function App() {
     return null;
   }
 
-  return <NavigationContainer>{routing}</NavigationContainer>;
+  return (
+    <Provider store={store}>
+      <Main />
+    </Provider>
+  );
 }

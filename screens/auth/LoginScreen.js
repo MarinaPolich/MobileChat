@@ -13,6 +13,9 @@ import {
   Dimensions,
 } from "react-native";
 
+import { useDispatch } from "react-redux";
+import { authSingInUser } from "../../redux/auth/authOperations";
+
 const initialState = {
   email: "",
   password: "",
@@ -21,6 +24,8 @@ const initialState = {
 export default function LoginScreen({ navigation }) {
   const [isShowKeyboard, setIsShowKeyboard] = useState(false);
   const [state, setState] = useState(initialState);
+
+  const dispatch = useDispatch();
 
   const [dimensions, setDimensions] = useState(
     Dimensions.get("window").width - 16 * 2
@@ -32,7 +37,7 @@ export default function LoginScreen({ navigation }) {
   };
 
   const handleSubmit = () => {
-    console.log("state", state);
+    dispatch(authSingInUser(state));
     setState(initialState);
   };
 

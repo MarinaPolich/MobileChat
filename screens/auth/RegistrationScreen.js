@@ -17,6 +17,9 @@ import {
 
 import SvgAdd from "../../assets/icon/add.svg";
 
+import { useDispatch } from "react-redux";
+import { authSingUpUser } from "../../redux/auth/authOperations";
+
 const initialState = {
   name: "",
   email: "",
@@ -26,6 +29,8 @@ const initialState = {
 export default function RegistrationScreen({ navigation }) {
   const [isShowKeyboard, setIsShowKeyboard] = useState(false);
   const [state, setState] = useState(initialState);
+
+  const dispatch = useDispatch();
 
   const [dimensions, setDimensions] = useState(
     Dimensions.get("window").width - 16 * 2
@@ -40,9 +45,7 @@ export default function RegistrationScreen({ navigation }) {
     try {
       const photo = await camera.takePictureAsync();
       setPhoto(photo.uri);
-    } catch (error) {
-      console.log("error :>> ", error);
-    }
+    } catch (error) {}
   };
 
   const keyboardHide = () => {
@@ -51,6 +54,7 @@ export default function RegistrationScreen({ navigation }) {
   };
 
   const handleSubmit = () => {
+    dispatch(authSingUpUser(state));
     setState(initialState);
   };
 
