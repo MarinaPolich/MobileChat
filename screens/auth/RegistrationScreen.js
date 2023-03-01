@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Camera } from "expo-camera";
+import { PhotoAvatar } from "../../components/PhotoAvatar";
 import {
   StyleSheet,
   Text,
@@ -12,10 +12,7 @@ import {
   Keyboard,
   TouchableWithoutFeedback,
   Dimensions,
-  Image,
 } from "react-native";
-
-import SvgAdd from "../../assets/icon/add.svg";
 
 import { useDispatch } from "react-redux";
 import { authSingUpUser } from "../../redux/auth/authOperations";
@@ -24,29 +21,16 @@ const initialState = {
   name: "",
   email: "",
   password: "",
+  photo: null,
 };
 
 export default function RegistrationScreen({ navigation }) {
+  const dispatch = useDispatch();
   const [isShowKeyboard, setIsShowKeyboard] = useState(false);
   const [state, setState] = useState(initialState);
-
-  const dispatch = useDispatch();
-
   const [dimensions, setDimensions] = useState(
     Dimensions.get("window").width - 16 * 2
   );
-
-  const [camera, setCamera] = useState(null);
-  const [photo, setPhoto] = useState(null);
-  const [permission, requestPermission] = Camera.useCameraPermissions();
-  Camera.requestCameraPermissionsAsync();
-
-  const takePhoto = async () => {
-    try {
-      const photo = await camera.takePictureAsync();
-      setPhoto(photo.uri);
-    } catch (error) {}
-  };
 
   const keyboardHide = () => {
     setIsShowKeyboard(false);
@@ -84,22 +68,12 @@ export default function RegistrationScreen({ navigation }) {
               }}
             >
               <View style={styles.photoContainer}>
-                <View style={styles.photoWrapper}>
-                  <Camera style={styles.cameraBox} ref={setCamera}>
-                    {photo && (
-                      <View style={styles.photoBox}>
-                        <Image source={{ uri: photo }} style={styles.photo} />
-                      </View>
-                    )}
-                  </Camera>
-                </View>
-                <TouchableOpacity
-                  onPress={takePhoto}
-                  style={styles.photoBtn}
-                  activeOpacity={0.8}
-                >
-                  <SvgAdd width={32} height={32} style={styles.imageBtn} />
-                </TouchableOpacity>
+                <PhotoAvatar
+                  photo={state.photo}
+                  updatePhoto={(photo) =>
+                    setState((state) => ({ ...state, photo }))
+                  }
+                />
               </View>
               <Text style={styles.title}>Регистрация</Text>
               <TextInput
@@ -168,7 +142,6 @@ const styles = StyleSheet.create({
     flex: 1,
     resizeMode: "cover",
     justifyContent: "flex-end",
-    // alignItems: "center",
   },
   input: {
     height: 50,
@@ -215,45 +188,12 @@ const styles = StyleSheet.create({
     textAlign: "center",
   },
   photoContainer: {
-    position: "relative",
+    width: 130,
+    height: 120,
     marginTop: -60,
     marginBottom: 32,
-  },
-  photoWrapper: {
-    width: 120,
-    height: 120,
-    backgroundColor: "#F6F6F6",
     borderRadius: 16,
     overflow: "hidden",
-  },
-  cameraBox: {
-    width: "100%",
-    height: "100%",
-  },
-  photoBox: {
-    position: "absolute",
-    top: 0,
-    left: 0,
-    width: "100%",
-    height: "100%",
-  },
-  photo: {
-    width: "100%",
-    height: "100%",
-  },
-  photoBtn: {
-    position: "absolute",
-    bottom: 10,
-    right: -20,
-    width: 40,
-    height: 40,
-    color: "#FF6C00",
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  imageBtn: {
-    transform: [{ rotate: "45deg" }],
-    color: "#FF6C00",
   },
   textLink: {
     textAlign: "center",

@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { useSelector } from "react-redux";
 import { Camera } from "expo-camera";
 import * as Location from "expo-location";
 import {
@@ -14,26 +15,31 @@ import {
   TextInput,
 } from "react-native";
 
+import { app } from "../../firebase/config";
+import { getStorage, ref, uploadBytes, getDownloadURL } from "firebase/storage";
+import { getFirestore, collection, addDoc } from "firebase/firestore";
+
 import SvgCamera from "../../assets/icon/camera.svg";
 import SvgMap from "../../assets/icon/map.svg";
 
 const initialState = {
-  name: "",
+  namePost: "",
   location: { latitude: 0, longitude: 0 },
-  photo: "",
+  photo: null,
+  // timestamp: null,
 };
 
 const CreatePostsScreen = ({ navigation }) => {
   const [isShowKeyboard, setIsShowKeyboard] = useState(false);
   const [state, setState] = useState(initialState);
-
   const [camera, setCamera] = useState(null);
-  const [photo, setPhoto] = useState(null);
   const [permission, requestPermission] = Camera.useCameraPermissions();
   Camera.requestCameraPermissionsAsync();
 
   const [location, setLocation] = useState(null);
   const [errorMsg, setErrorMsg] = useState(null);
+
+  const { userId, name } = useSelector((state) => state.auth);
 
   const keyboardHide = () => {
     setIsShowKeyboard(false);
@@ -43,23 +49,13 @@ const CreatePostsScreen = ({ navigation }) => {
   const takePhoto = async () => {
     try {
       const photo = await camera.takePictureAsync();
-      setPhoto(photo.uri);
-      setState((prevState) => ({ ...prevState, photo: photo.uri }));
 
-      const location = await Location.getCurrentPositionAsync({});
-      const { latitude, longitude } = location.coords;
-      const [position] = await Location.reverseGeocodeAsync({
-        latitude,
-        longitude,
-      });
-      console.log("position :>> ", position);
-
-      setLocation({ latitude, longitude });
+      const [position] = await Location.reverseGeocodeAsync(location);
       setState((prevState) => ({
         ...prevState,
+        photo: photo.uri,
         location: {
-          latitude,
-          longitude,
+          ...location,
           title: `${position.city}, ${position.region}`,
         },
       }));
@@ -68,9 +64,46 @@ const CreatePostsScreen = ({ navigation }) => {
     }
   };
 
-  const sendPhoto = () => {
-    navigation.navigate("Публикации", { state });
+  const sendPhoto = async () => {
+    await uploadPostToServer();
+    navigation.navigate("Публикации", { newPost: Date.now().toString() });
     setState(initialState);
+  };
+
+  const uploadPhotoToServer = async () => {
+    const response = await fetch(state.photo);
+    const file = await response.blob();
+
+    const uniquePostId = Date.now().toString();
+
+    const storage = getStorage();
+    const storageRef = ref(storage, `postImage/${uniquePostId}`);
+
+    await uploadBytes(storageRef, file);
+
+    const processedPhoto = await getDownloadURL(
+      ref(storage, `postImage/${uniquePostId}`)
+    );
+
+    return processedPhoto;
+  };
+
+  const uploadPostToServer = async () => {
+    const photo = await uploadPhotoToServer();
+    try {
+      const db = getFirestore(app);
+      const obj = {
+        ...state,
+        photo,
+        userId,
+        name,
+        timestamp: Date.now(),
+      };
+      const createPost = await addDoc(collection(db, "posts"), obj);
+      console.log("Document written with ID: ", createPost.id);
+    } catch (e) {
+      console.error("Error adding document: ", e);
+    }
   };
 
   useEffect(() => {
@@ -80,40 +113,44 @@ const CreatePostsScreen = ({ navigation }) => {
         setErrorMsg("Permission to access location was denied");
         return;
       }
+      const location = await Location.getCurrentPositionAsync({});
+      const { latitude, longitude } = location.coords;
+      setLocation({ latitude, longitude });
     })();
   }, []);
 
   return (
     <TouchableWithoutFeedback onPress={keyboardHide}>
       <View style={styles.container}>
-        <KeyboardAvoidingView
-          behavior={Platform.OS === "ios" ? "padding" : null}
-        >
-          <View style={styles.cameraBox}>
+        <View style={styles.cameraBox}>
+          {state.photo ? (
+            <>
+              <View style={styles.camera}>
+                <Image source={{ uri: state.photo }} style={styles.photo} />
+              </View>
+            </>
+          ) : (
             <Camera style={styles.camera} ref={setCamera}>
-              {photo && (
-                <>
-                  <View style={styles.photoBox}>
-                    <Image source={{ uri: photo }} style={styles.photo} />
-                  </View>
-                </>
-              )}
               <TouchableOpacity onPress={takePhoto}>
                 <SvgCamera width={60} height={60} />
               </TouchableOpacity>
             </Camera>
-          </View>
-
-          {photo ? (
-            <Text style={styles.titleCamera}>Редактировать фото</Text>
-          ) : (
-            <Text style={styles.titleCamera}>Загрузите фото</Text>
           )}
+        </View>
 
+        {state.photo ? (
+          <Text style={styles.titleCamera}>Редактировать фото</Text>
+        ) : (
+          <Text style={styles.titleCamera}>Загрузите фото</Text>
+        )}
+
+        <KeyboardAvoidingView
+          behavior={Platform.OS === "ios" ? "padding" : null}
+        >
           <View
             style={{
               ...styles.form,
-              marginBottom: isShowKeyboard ? -174 : 0,
+              marginBottom: isShowKeyboard ? -144 : 0,
             }}
           >
             <TextInput
@@ -122,9 +159,9 @@ const CreatePostsScreen = ({ navigation }) => {
               placeholder={"Название..."}
               placeholderTextColor={"#BDBDBD"}
               onFocus={() => setIsShowKeyboard(true)}
-              value={state.name}
+              value={state.namePost}
               onChangeText={(value) =>
-                setState((prevState) => ({ ...prevState, name: value }))
+                setState((prevState) => ({ ...prevState, namePost: value }))
               }
             />
             <View style={{ position: "relative", marginBottom: 32 }}>
@@ -140,9 +177,9 @@ const CreatePostsScreen = ({ navigation }) => {
               />
             </View>
             <TouchableOpacity
-              disabled={state.photo.length === 0}
+              disabled={!state.photo}
               style={
-                state.photo.length === 0
+                !state.photo
                   ? { ...styles.addBtn, ...styles.disabledAddBtn }
                   : styles.addBtn
               }
@@ -150,7 +187,7 @@ const CreatePostsScreen = ({ navigation }) => {
             >
               <Text
                 style={
-                  state.photo.length === 0
+                  !state.photo
                     ? { ...styles.titleAddBtn, ...styles.disabledTitleAddBtn }
                     : styles.titleAddBtn
                 }
@@ -188,14 +225,6 @@ const styles = StyleSheet.create({
     aspectRatio: 343 / 240,
     justifyContent: "center",
     alignItems: "center",
-  },
-  photoBox: {
-    position: "absolute",
-    top: 0,
-    left: 0,
-    width: "100%",
-    height: "100%",
-    borderRadius: 8,
   },
   photo: {
     width: "100%",

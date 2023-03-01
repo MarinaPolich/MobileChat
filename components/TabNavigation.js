@@ -1,20 +1,25 @@
 import React from "react";
+import { useDispatch } from "react-redux";
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 
 import CreatePostsScreen from "../screens/main/CreatePostsScreen";
 import ProfileScreen from "../screens/main/ProfileScreen";
+import { TouchableOpacity } from "react-native";
+import PostsScreen from "../screens/main/PostsScreen";
+import { authSingOutUser } from "../redux/auth/authOperations";
 
 import SvgGrid from "../assets/icon/grid.svg";
 import SvgNew from "../assets/icon/new.svg";
 import SvgUser from "../assets/icon/user.svg";
 import SvgLogout from "../assets/icon/log-out.svg";
 
-import { TouchableOpacity } from "react-native";
-import PostsScreen from "../screens/main/PostsScreen";
-
 const MainTab = createBottomTabNavigator();
 
 const TabNavigation = () => {
+  const dispatch = useDispatch();
+  const singOut = () => {
+    dispatch(authSingOutUser());
+  };
   return (
     <MainTab.Navigator
       screenOptions={{
@@ -48,7 +53,10 @@ const TabNavigation = () => {
             <SvgGrid width={40} height={40} style={{ color }} />
           ),
           headerRight: () => (
-            <TouchableOpacity style={{ marginHorizontal: 16 }}>
+            <TouchableOpacity
+              onPress={singOut}
+              style={{ marginHorizontal: 16 }}
+            >
               <SvgLogout width={24} height={24} />
             </TouchableOpacity>
           ),
@@ -69,6 +77,7 @@ const TabNavigation = () => {
         name="Profile"
         component={ProfileScreen}
         options={{
+          headerShown: false,
           tabBarIcon: ({ color }) => (
             <SvgUser width={40} height={40} style={{ color }} />
           ),
